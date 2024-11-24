@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>书签联系人首页</title>
+    <style>
+        h1{
+            text-align: center;
+            margin-top: 20px;
+            color: #27ae60;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 10px;
+        }
+        .contact-list {
+            margin-top: 20px;
+        }
+        .contact-item {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9f9f9;
+        }
+        .contact-item h3 {
+            margin: 0;
+        }
+        .contact-item p {
+            margin: 5px 0;
+        }
+        .contact-item button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .contact-item button:hover {
+            background-color: #45a049;
+        }
+        .msg{
+            text-align: center;
+            font-size: 25px;
+            margin-top: 100px
+        }
+    </style>
+</head>
+<body>
+    <h1 th:text="'欢迎来到' + ${userName} + '的联系人记录簿'"/>
+    <a th:href="@{/contactPersonPage}" class="text-input">点我录入</a>
+    <a href="#" onclick="exportContact();">点我导出</a>
+    <a th:href="@{/importPage}" class="text-input">点我导入</a>
+    <a href="template.xls" class="text-input">点我下载导入模板</a>
+    <div class="contact-list">
+        <div th:if="${#lists.isEmpty(contactPeoples)}">
+            <p class="msg">暂无联系人</p>
+        </div>
+        <div th:each="contact : ${contactPeoples}" class="contact-item">
+            <div>
+                <h3 th:text="${contact.name}">张三</h3>
+                <p th:text="'电话: ' + ${contact.phone}">电话: 1234567890</p>
+                <p th:text="'邮箱: ' + ${contact.email}">邮箱: zhangsan@example.com</p>
+                <p th:text="'社交媒体账户: ' + ${contact.mateAccount}">社交媒体账户: zhangsan_social</p>
+                <p th:text="'地址: ' + ${contact.address}">地址: 北京市朝阳区</p>
+            </div>
+            <div>
+                <form th:if="${contact.isFavorite}" th:action="@{/collection}" method="get">
+                    <input type="hidden" name="userId" th:value="${userId}">
+                    <input type="hidden" name="contactPersonId" th:value="${contact.id}">
+                    <button type="submit" class="favorite-button">取消收藏</button>
+                </form>
+                <form th:if="${!contact.isFavorite}" th:action="@{/collection}" method="get">
+                    <input type="hidden" name="userId" th:value="${userId}">
+                    <input type="hidden" name="contactPersonId" th:value="${contact.id}">
+                    <button type="submit" class="favorite-button">收藏</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    function exportContact() {
+        fetch('/export', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/octet-stream',
+            },
+
+        }).then(response => response.blob())
+            .then(blob => {
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = '联系人簿.xls';
+                link.click();
+            })
+            .catch(error => console.error('下载失败', error));
+    }
+</script>
+</html>
